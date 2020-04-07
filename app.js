@@ -28,16 +28,21 @@ app.get('/api', (req, res) => {
         return new Promise(async resolve => {
 
             const response = await fetch(url, {
-                method: 'HEAD',
+                method: 'GET',
                 headers: {
                     'Authorization': 'Basic ' + btoa(`hexagonatron:${API_KEY}`)
                 }
             });
             responseHeaders = await response.headers
-            console.log(responseHeaders.get("link"));
-            responseJSON = await response.blob();
+            // console.log(responseHeaders.get("link"));
+            responseJSON = await response.json().then(data => {
+                if(response.headers.has("link")){
+                    console.log(response.headers.get("link").split(','));
+
+                }
+                resolve(data);
+            });
             // console.log(responseJSON);
-            resolve(responseJSON);
         });
         
     });
