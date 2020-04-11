@@ -1,30 +1,34 @@
-var people = [
-    ["Ben", "hexagonatron"],
-    ["Trent", "trentstollery"]
-];
 
 //https://api.github.com/repos/hexagonatron/BootcampW2Activity/commits?author=hexagonatron&since=2020-01-01T00:00:00Z
+const tableOutput = document.querySelector(".result-output");
 
-var today = new Date();
+const processResults = (responseArray) => {
+    responseArray.sort((a, b) => {
+        return b.data.total_count - a.data.total_count;
+    });
+    console.log(responseArray);
+    responseArray.forEach((person, index) => {
+        createRow(person, index + 1);
+    });
+}
 
-var yearAgo = new Date();
+const createRow = (person, position) => {
+    htmlString = `
+    <tr>
+        <td scope="row">${position}</td>
+        <td><a href="https://https://github.com/${person.username}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
+        <td>${person.data.total_count}</td>
+        <td>${person.data.total_count? person.data.items[0].repository.name:"No commits =("}</td>
+        <td>${person.data.total_count? person.data.items[0].commit.author.date:"-"}</td>
+    </tr>`;
 
-var weekAgo = new Date();
-
-weekAgo.setTime(today.getTime() - (1000* 60 * 60 * 24 * 7))
-
-yearAgo.setTime(today.getTime() - (1000 * 60 * 60 * 24 * 365));
-
-var yearAgoISO = yearAgo.toISOString();
-
-console.log(yearAgoISO);
+    tableOutput.innerHTML += htmlString;
+}
 
 $.ajax({
     url: "/api",
     method: "GET",
-    success: (response) => {
-        console.log(response);
-    },
+    success: processResults,
     error: (xhr, status, err) => {
         console.log(`Status: ${status}, Error: ${err}`);
     }
