@@ -24,8 +24,6 @@ app.use(express.json({ limit: '1mb' }));
 let lastQueryTime = 0;
 let lastQueryResult;
 
-app.get()
-
 //If API endpoint hit
 app.get('/api', (req, res) => {
 
