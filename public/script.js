@@ -23,7 +23,7 @@ const createRow = (person, position) => {
     htmlString = `
     <tr>
         <td scope="row">${position}</td>
-        <td><img class="git-avatar" src="${person.data.items[0]?person.data.items[0].author.avatar_url:""}"><a href="https://https://github.com/${person.username}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
+        <td><img class="git-avatar" src="${person.data.items[0]?person.data.items[0].author.avatar_url:""}"><a href="https://github.com/${person.username}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
         <td>${person.data.total_count}</td>
         <td>${person.data.total_count? `<a href="${person.data.items[0].repository.html_url}" target="_blank" rel="noopener noreferrer">${person.data.items[0].repository.name}</a>`:"No commits =("}</td>
         <td>${person.data.total_count? moment(person.data.items[0].commit.author.date).fromNow():"-"}</td>
