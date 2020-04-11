@@ -1,28 +1,41 @@
+//Dependancies
 const express = require('express');
 const fetch = require('node-fetch');
 const path = require('path');
 const btoa = require('btoa');
 require('dotenv').config();
 
+//Intialise Express
 const app = express();
 
+//Set port Number
 const PORT = process.env.PORT || 3000;
 
-
+//Start server
 app.listen(3000, () => {
     console.log(`Server started on port ${PORT}`);
 });
 
+//Setup static pages
 app.use(express.static('public'));
 app.use(express.json({ limit: '1mb' }));
 
 
+//Track last query time and result
+let lastQueryTime = 0;
+let lastQueryResult;
+
+//If API endpoint hit
 app.get('/api', (req, res) => {
 
+    //Define query Fn
     const queryGitHub = (user) => {
+
+        //Setup url
         const url = `https://api.github.com/search/commits?q=author:${user.git_user}&sort=author-date&order=desc`;
         return new Promise(resolve => {
 
+            //API call
             fetch(url, {
                 method: 'GET',
                 headers: {
@@ -31,11 +44,10 @@ app.get('/api', (req, res) => {
                 }
             })
                 .then(APIresponse => {
-                    // console.log("#################  API Response  #################");
-                    // console.log(APIresponse);
                     return APIresponse.json();
                 })
                 .then(data => {
+                    //Construct response object and resolve promise
                     resolve(
                         {
                             name: user.display,
@@ -48,6 +60,7 @@ app.get('/api', (req, res) => {
 
     }
 
+    //Array of git users
     const gitUsers = [
         {
             display: "Ben F",
@@ -142,15 +155,35 @@ app.get('/api', (req, res) => {
             git_user: "NicoleGeorge"
         }
     ];
-    // const gitUsers = ["hexagonatron"];
+
+    //Load API Key from env
     const API_KEY = process.env.API_KEY;
 
-    resultsArray = gitUsers.map(user => {
-        return queryGitHub(user);
-    });
+    //If last call was over 2 mins ago
+    if((new Date().getTime() - lastQueryTime) > (1000*60 * 2)){
 
-    Promise.all(resultsArray).then(data => {
+        //Update last queryTime
+        lastQueryTime = new Date().getTime();
 
-        res.json(data);
-    });
+        //Iterate through users and call the query fn
+        resultsArray = gitUsers.map(user => {
+            return queryGitHub(user);
+        });
+    
+        //When results from all api queries have been returned
+        Promise.all(resultsArray).then(data => {
+
+            //Save the data into variable
+            lastQueryResult = [...data];
+            console.log("Return New");
+
+            //Return data to frontend
+            res.json(data);
+        });
+    } else {
+        //If last query was less than 2 mins ago return the saved results
+
+        console.log("Return prev");
+        res.json(lastQueryResult);
+    }
 });
