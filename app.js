@@ -80,6 +80,66 @@ app.get('/api', (req, res) => {
         {
             display: "Claire",
             git_user: "clairevandeneberg"
+        },
+        {
+            display: "Matt M",
+            git_user: "Macca473"
+        },
+        {
+            display: "Udara",
+            git_user: "udara"
+        },
+        {
+            display: "Mariusz",
+            git_user: "borucltd"
+        },
+        {
+            display: "Craig",
+            git_user: "craigfbarry"
+        },
+        {
+            display: "Alvaro",
+            git_user: "Anieto86"
+        },
+        {
+            display: "Thayer",
+            git_user: "omarthayer"
+        },
+        {
+            display: "Angelo",
+            git_user: "vlad916"
+        },
+        {
+            display: "Damien",
+            git_user: "damian545"
+        },
+        {
+            display: "Astrid",
+            git_user: "AstridSuhartono"
+        },
+        {
+            display: "Matt T",
+            git_user: "trojanface"
+        },
+        {
+            display: "Karthik",
+            git_user: "karthikkovi"
+        },
+        {
+            display: "Nathan",
+            git_user: "NathanTeakle"
+        },
+        {
+            display: "Ana",
+            git_user: "amarr001"
+        },
+        {
+            display: "Ruma",
+            git_user: "RumaRDas"
+        },
+        {
+            display: "Nicole",
+            git_user: "NicoleGeorge"
         }
     ];
     // const gitUsers = ["hexagonatron"];

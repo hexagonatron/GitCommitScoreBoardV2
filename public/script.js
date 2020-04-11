@@ -18,8 +18,8 @@ const createRow = (person, position) => {
         <td scope="row">${position}</td>
         <td><a href="https://https://github.com/${person.username}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
         <td>${person.data.total_count}</td>
-        <td>${person.data.total_count? person.data.items[0].repository.name:"No commits =("}</td>
-        <td>${person.data.total_count? person.data.items[0].commit.author.date:"-"}</td>
+        <td>${person.data.total_count? `<a href="${person.data.items[0].repository.html_url}" target="_blank" rel="noopener noreferrer">${person.data.items[0].repository.name}</a>`:"No commits =("}</td>
+        <td>${person.data.total_count? moment(person.data.items[0].commit.author.date).fromNow():"-"}</td>
     </tr>`;
 
     tableOutput.innerHTML += htmlString;
