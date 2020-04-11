@@ -11,14 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 //Start server
-app.listen(3000, () => {
+app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
 
 //Setup static pages
 app.use(express.static('public'));
-app.use(express.json({ limit: '1mb' }));
-
 
 //Track last query time and result
 let lastQueryTime = 0;
