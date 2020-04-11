@@ -1,7 +1,6 @@
 //Dependancies
 const express = require('express');
 const fetch = require('node-fetch');
-const path = require('path');
 const btoa = require('btoa');
 require('dotenv').config();
 
@@ -24,6 +23,8 @@ app.use(express.json({ limit: '1mb' }));
 //Track last query time and result
 let lastQueryTime = 0;
 let lastQueryResult;
+
+app.get()
 
 //If API endpoint hit
 app.get('/api', (req, res) => {
