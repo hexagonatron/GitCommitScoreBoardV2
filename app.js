@@ -2,6 +2,7 @@
 const express = require('express');
 const fetch = require('node-fetch');
 const btoa = require('btoa');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 //Intialise Express
@@ -9,6 +10,57 @@ const app = express();
 
 //Set port Number
 const PORT = process.env.PORT || 3000;
+
+//Connect to DB
+mongoose.connect(`mongodb+srv://Admin:${process.env.DB_PASS}@cluster0-1mfc4.mongodb.net/gitcommitscoreboard?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
+
+let db = mongoose.connection;
+
+//Log status once connected or errored
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log("Connected to DB succesfully!");
+
+});
+
+//Setting up mongo schema
+let commitSchema = mongoose.Schema({
+    url: {
+        type: String,
+        required: true
+    },
+    sha: {
+        type: String,
+        required: true
+    },
+    node_id: {
+        type: String
+    },
+    html_url: {
+        type: String
+    },
+    comments_url: {
+        type: String
+    },
+    commit: {
+        type: Object,
+        required: true
+    },
+    author: {
+        type: Object
+    },
+    committer: {
+        type: Object
+    },
+    repository: {
+        type: Object
+    },
+    score: {
+        type: Number
+    }
+});
+
+let Commit = mongoose.model('Commit', commitSchema);
 
 //Start server
 app.listen(PORT, () => {
@@ -21,6 +73,32 @@ app.use(express.static('public'));
 //Track last query time and result
 let lastQueryTime = 0;
 let lastQueryResult;
+
+const addCommits = (commitArray, callback) => {
+    commitArray.forEach(el => {
+
+        let update = {
+            $setOnInsert: {
+                url: el.url,
+                sha: el.sha,
+                node_id: el.node_id,
+                html_url: el.html_url,
+                comments_url: el.comments_url,
+                commit: el.commit,
+                author: el.author,
+                committer: el.committer,
+                repository: el.repository,
+                score: el.score
+            }
+        };
+
+        let query = {node_id: el.node_id};
+
+        let options = {upsert: true};
+
+        Commit.update(query,update,options, callback);
+    });
+}
 
 //If API endpoint hit
 app.get('/api', (req, res) => {
@@ -36,7 +114,7 @@ app.get('/api', (req, res) => {
             fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'Basic ' + btoa(`hexagonatron:${API_KEY}`),
+                    'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`),
                     'Accept': "application/vnd.github.cloak-preview"
                 }
             })
@@ -44,6 +122,15 @@ app.get('/api', (req, res) => {
                     return APIresponse.json();
                 })
                 .then(data => {
+                    
+                    //Add to database
+                    let commitArray = [...data.items];
+
+                    addCommits(commitArray, function(err, response){
+                        if (err) return console.log(err);
+                        console.log("Something happened");
+                    });
+                    
                     //Construct response object and resolve promise
                     resolve(
                         {
