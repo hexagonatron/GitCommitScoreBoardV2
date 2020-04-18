@@ -3,6 +3,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const btoa = require('btoa');
 const mongoose = require('mongoose');
+const fs = require('fs');
 require('dotenv').config();
 
 //Intialise Express
@@ -104,141 +105,48 @@ const addCommits = (commitArray, callback) => {
 app.get('/api', (req, res) => {
 
     //Define query Fn
-    const queryGitHub = (user) => {
+    // const queryGitHub = (user) => {
 
-        //Setup url
-        const url = `https://api.github.com/search/commits?q=author:${user.git_user}&sort=author-date&order=desc`;
-        return new Promise(resolve => {
+    //     //Setup url
+    //     const url = `https://api.github.com/search/commits?q=author:${user.git_user}&sort=author-date&order=desc`;
+    //     return new Promise(resolve => {
 
-            //API call
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`),
-                    'Accept': "application/vnd.github.cloak-preview"
-                }
-            })
-                .then(APIresponse => {
-                    return APIresponse.json();
-                })
-                .then(data => {
+    //         //API call
+    //         fetch(url, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`),
+    //                 'Accept': "application/vnd.github.cloak-preview"
+    //             }
+    //         })
+    //             .then(APIresponse => {
+    //                 return APIresponse.json();
+    //             })
+    //             .then(data => {
                     
-                    //Add to database
-                    let commitArray = [...data.items];
+    //                 //Add to database
+    //                 let commitArray = [...data.items];
 
-                    addCommits(commitArray, function(err, response){
-                        if (err) return console.log(err);
-                        console.log("Something happened");
-                    });
+    //                 addCommits(commitArray, function(err, response){
+    //                     if (err) return console.log(err);
+    //                     console.log("Something happened");
+    //                 });
                     
-                    //Construct response object and resolve promise
-                    resolve(
-                        {
-                            name: user.display,
-                            username: user.git_user,
-                            data: data
-                        }
-                    );
-                })
-        });
+    //                 //Construct response object and resolve promise
+    //                 resolve(
+    //                     {
+    //                         name: user.display,
+    //                         username: user.git_user,
+    //                         data: data
+    //                     }
+    //                 );
+    //             })
+    //     });
 
-    }
+    // }
 
     //Array of git users
-    const gitUsers = [
-        {
-            display: "Ben F",
-            git_user: "hexagonatron"
-        },
-        {
-            display: "Brock",
-            git_user: "bhamann-collab"
-        },
-        {
-            display: "Alex",
-            git_user: "Alex-Waite"
-        },
-        {
-            display: "Test Account",
-            git_user: "gitcommitscoreboard"
-        },
-        {
-            display: "Trent",
-            git_user: "trentstollery"
-        },
-        {
-            display: "Ben C",
-            git_user: "BenBugs"
-        },
-        {
-            display: "Nima",
-            git_user: "kneema"
-        },
-        {
-            display: "Claire",
-            git_user: "clairevandeneberg"
-        },
-        {
-            display: "Matt M",
-            git_user: "Macca473"
-        },
-        {
-            display: "Udara",
-            git_user: "udara"
-        },
-        {
-            display: "Mariusz",
-            git_user: "borucltd"
-        },
-        {
-            display: "Craig",
-            git_user: "craigfbarry"
-        },
-        {
-            display: "Alvaro",
-            git_user: "Anieto86"
-        },
-        {
-            display: "Thayer",
-            git_user: "omarthayer"
-        },
-        {
-            display: "Angelo",
-            git_user: "vlad916"
-        },
-        {
-            display: "Damien",
-            git_user: "damian545"
-        },
-        {
-            display: "Astrid",
-            git_user: "AstridSuhartono"
-        },
-        {
-            display: "Matt T",
-            git_user: "trojanface"
-        },
-        {
-            display: "Karthik",
-            git_user: "karthikkovi"
-        },
-        {
-            display: "Nathan",
-            git_user: "NathanTeakle"
-        },
-        {
-            display: "Ana",
-            git_user: "amarr001"
-        },
-        {
-            display: "Ruma",
-            git_user: "RumaRDas"
-        },
-        {
-            display: "Nicole",
-            git_user: "NicoleGeorge"
-        }
-    ];
+    
 
     //Load API Key from env
     const API_KEY = process.env.API_KEY;
@@ -271,3 +179,169 @@ app.get('/api', (req, res) => {
         res.json(lastQueryResult);
     }
 });
+
+
+const gitUsers = [
+    {
+        display: "Ben F",
+        git_user: "hexagonatron"
+    },
+    {
+        display: "Brock",
+        git_user: "bhamann-collab"
+    },
+    {
+        display: "Alex",
+        git_user: "Alex-Waite"
+    },
+    {
+        display: "Test Account",
+        git_user: "gitcommitscoreboard"
+    },
+    {
+        display: "Trent",
+        git_user: "trentstollery"
+    },
+    {
+        display: "Ben C",
+        git_user: "BenBugs"
+    },
+    {
+        display: "Nima",
+        git_user: "kneema"
+    },
+    {
+        display: "Claire",
+        git_user: "clairevandeneberg"
+    },
+    {
+        display: "Matt M",
+        git_user: "Macca473"
+    },
+    {
+        display: "Udara",
+        git_user: "udara"
+    },
+    {
+        display: "Mariusz",
+        git_user: "borucltd"
+    },
+    {
+        display: "Craig",
+        git_user: "craigfbarry"
+    },
+    {
+        display: "Alvaro",
+        git_user: "Anieto86"
+    },
+    {
+        display: "Thayer",
+        git_user: "omarthayer"
+    },
+    {
+        display: "Angelo",
+        git_user: "vlad916"
+    },
+    {
+        display: "Damien",
+        git_user: "damian545"
+    },
+    {
+        display: "Astrid",
+        git_user: "AstridSuhartono"
+    },
+    {
+        display: "Matt T",
+        git_user: "trojanface"
+    },
+    {
+        display: "Karthik",
+        git_user: "karthikkovi"
+    },
+    {
+        display: "Nathan",
+        git_user: "NathanTeakle"
+    },
+    {
+        display: "Ana",
+        git_user: "amarr001"
+    },
+    {
+        display: "Ruma",
+        git_user: "RumaRDas"
+    },
+    {
+        display: "Nicole",
+        git_user: "NicoleGeorge"
+    },
+    {
+        display: "Ziyen",
+        git_user: "zyloh89"
+    }
+];
+const queryGitHub = () => {
+
+    const firstResults = gitUsers.map((user) => {
+
+        const url = `https://api.github.com/search/commits?q=author:${user.git_user}&sort=author-date&order=desc`;
+        const API_KEY = process.env.API_KEY;
+
+        console.log(`Fetching ${user.git_user}`)
+        return new Promise((resolve, reject) => {
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`),
+                    'Accept': "application/vnd.github.cloak-preview"
+                }
+            })
+            .then(apiResponse => {
+                const headers = apiResponse.headers.get("link");
+                const lastRegex = /<https:\/\/api\.github\.com\/search\/commits\?q=author%3A[a-z0-9-]+&sort=author-date&order=desc&page=(\d+)>; rel="last"/gim
+
+                let lastPageNo = lastRegex.exec(headers);
+                if(lastPageNo){
+                    lastPageNo = lastPageNo[1];
+                    let urls = [];
+                    for(let i = 2; i <= lastPageNo; i++){
+                        let nexturl = `https://api.github.com/search/commits?q=author%3A${user.git_user}&sort=author-date&order=desc&page=${i}`;
+                        urls.push(nexturl);
+                        fs.appendFile("./log/urllist.txt", nexturl + "\n", (err) => {
+                            if(err) reject(err);
+                        });
+                    }
+                    resolve(urls);
+                } else {
+                    resolve();
+                }
+
+
+                fs.appendFile("./log/headers.txt", user.git_user + "\n" + headers + "\n\n",(err) => {
+                    if (err) reject(err);
+                });
+                return apiResponse.json();
+            })
+            .then(jsonData => {
+                console.log(`Fetch of ${user.git_user} complete.`);
+                const jsonString = JSON.stringify(jsonData);
+                fs.appendFile("./log/responsejson.txt", jsonString + "\n", (err) => {
+                    if(err) reject(err);
+                });
+            })
+        })
+
+    });
+
+    Promise.all(firstResults).then(data => {
+        console.log("All results fetched");
+        console.log(`Url list:`);
+        console.log(data.flat());
+    })
+    .catch(error => {
+        console.log("Error: ", error);
+    })
+
+
+}
+
+queryGitHub();
