@@ -3,6 +3,7 @@ const tableOutput = document.querySelector(".result-output");
 
 const commitNumSortToggle = document.querySelector(".sort-arrow.commitnum");
 const lastCommitSortToggle = document.querySelector(".sort-arrow.lastcommit");
+const commitNumWeekSortToggle = document.querySelector(".sort-arrow.commitnumweek");
 
 
 
@@ -31,13 +32,17 @@ const processResults = (responseArray) => {
 
 
 //Sort functions
-const commitDes = (a, b) => b.data.total_count - a.data.total_count;
+const commitDes = (a, b) => b.commit_count_all_time - a.commit_count_all_time;
 
-const commitAsc = (a, b) => a.data.total_count - b.data.total_count;
+const commitAsc = (a, b) => a.commit_count_all_time - b.commit_count_all_time;
 
-const lastCommitDes = (a, b) => moment(b.data.total_count?b.data.items[0].commit.author.date:0).unix() - moment(a.data.total_count?a.data.items[0].commit.author.date:0).unix();
+const commitWeekDes = (a, b) => b.commit_count_last_week - a.commit_count_last_week;
 
-const lastCommitAsc = (a, b) => moment(a.data.total_count?a.data.items[0].commit.author.date:Infinity).unix() - moment(b.data.total_count?b.data.items[0].commit.author.date:Infinity).unix();
+const commitWeekAsc = (a, b) => a.commit_count_last_week - b.commit_count_last_week;
+
+const lastCommitDes = (a, b) => moment(b.commit_count_all_time?b.commits[0].commit.author.date:0).unix() - moment(a.commit_count_all_time?a.commits[0].commit.author.date:0).unix();
+
+const lastCommitAsc = (a, b) => moment(a.commit_count_all_time?a.commits[0].commit.author.date:Infinity).unix() - moment(b.commit_count_all_time?b.commits[0].commit.author.date:Infinity).unix();
 
 
 //Fn to add a row to the page
@@ -47,10 +52,11 @@ const createRow = (person, position) => {
     htmlString = `
     <tr>
         <td scope="row">${position}</td>
-        <td><img class="git-avatar" src="${person.data.total_count?person.data.items[0].author.avatar_url:""}"><a href="https://github.com/${person.username}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
-        <td>${person.data.total_count}</td>
-        <td>${person.data.total_count? `<a href="${person.data.items[0].repository.html_url}" target="_blank" rel="noopener noreferrer">${person.data.items[0].repository.name}</a>`:"No commits =("}</td>
-        <td>${person.data.total_count? moment(person.data.items[0].commit.author.date).fromNow():"-"}</td>
+        <td><img class="git-avatar" src="${person.commit_count_all_time?person.commits[0].author.avatar_url:""}"><a href="https://github.com/${person.user_name}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
+        <td>${person.commit_count_all_time}</td>
+        <td>${person.commit_count_last_week}</td>
+        <td>${person.commit_count_all_time? `<a href="${person.commits[0].repository.html_url}" target="_blank" rel="noopener noreferrer">${person.commits[0].repository.name}</a>`:"No commits =("}</td>
+        <td>${person.commit_count_all_time? moment(person.commits[0].commit.author.date).fromNow():"-"}</td>
     </tr>`;
 
     //Push to page
@@ -82,7 +88,9 @@ lastCommitSortToggle.addEventListener("click", (event) => {
         displayResults(dataArray,lastCommitDes);
     }
     commitNumSortToggle.classList.remove("fa-sort-up","fa-sort-down");
+    commitNumWeekSortToggle.classList.remove("fa-sort-up","fa-sort-down");
     commitNumSortToggle.classList.add("fa-sort");
+    commitNumWeekSortToggle.classList.add("fa-sort");
 });
 
 commitNumSortToggle.addEventListener("click", (event) => {
@@ -101,5 +109,28 @@ commitNumSortToggle.addEventListener("click", (event) => {
     }
     lastCommitSortToggle.classList.remove("fa-sort-up","fa-sort-down");
     lastCommitSortToggle.classList.add("fa-sort");
+    commitNumWeekSortToggle.classList.remove("fa-sort-up","fa-sort-down");
+    commitNumWeekSortToggle.classList.add("fa-sort");
+
+});
+
+commitNumWeekSortToggle.addEventListener("click", (event) => {
+    if(commitNumWeekSortToggle.classList.contains("fa-sort")){
+        commitNumWeekSortToggle.classList.remove("fa-sort");
+        commitNumWeekSortToggle.classList.add("fa-sort-up");
+        displayResults(dataArray, commitWeekDes);
+    } else if(commitNumWeekSortToggle.classList.contains("fa-sort-up")){
+        commitNumWeekSortToggle.classList.remove("fa-sort-up");
+        commitNumWeekSortToggle.classList.add("fa-sort-down");
+        displayResults(dataArray, commitWeekAsc);
+    } else if(commitNumWeekSortToggle.classList.contains("fa-sort-down")){
+        commitNumWeekSortToggle.classList.remove("fa-sort-down");
+        commitNumWeekSortToggle.classList.add("fa-sort-up");
+        displayResults(dataArray, commitWeekDes);
+    }
+    lastCommitSortToggle.classList.remove("fa-sort-up","fa-sort-down");
+    lastCommitSortToggle.classList.add("fa-sort");
+    commitNumSortToggle.classList.remove("fa-sort-up","fa-sort-down");
+    commitNumSortToggle.classList.add("fa-sort");
 
 });
