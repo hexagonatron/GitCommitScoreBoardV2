@@ -12,6 +12,12 @@ const app = express();
 //Set port Number
 const PORT = process.env.PORT || 3000;
 
+const API_KEY = process.env.API_KEY;
+
+const loggerOn = process.env.LOGGING == "true"? true: false;
+
+console.log(loggerOn);
+
 //Connect to DB
 mongoose.connect(`mongodb+srv://Admin:${process.env.DB_PASS}@cluster0-1mfc4.mongodb.net/gitcommitscoreboard?retryWrites=true&w=majority`, {useNewUrlParser: true, useUnifiedTopology: true});
 
@@ -75,6 +81,16 @@ app.use(express.static('public'));
 let lastQueryTime = 0;
 let lastQueryResult;
 
+//Delay Fn
+
+const delay = (time) => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+        }, time);
+    });
+}
+
 const addCommits = (commitArray, callback) => {
     commitArray.forEach(el => {
 
@@ -97,7 +113,7 @@ const addCommits = (commitArray, callback) => {
 
         let options = {upsert: true};
 
-        Commit.update(query,update,options, callback);
+        Commit.updateOne(query,update,options, callback);
     });
 }
 
@@ -149,7 +165,6 @@ app.get('/api', (req, res) => {
     
 
     //Load API Key from env
-    const API_KEY = process.env.API_KEY;
 
     //If last call was over 2 mins ago
     if((new Date().getTime() - lastQueryTime) > (1000*60 * 2)){
@@ -180,6 +195,87 @@ app.get('/api', (req, res) => {
     }
 });
 
+const logger = (message) => {
+    if (loggerOn){
+        const messageToLog = new Date().toISOString() + ": " + message + "\n";
+    
+        fs.appendFile("./log/log.txt", messageToLog, "utf8", (err) => {
+            if (err) console.log(err);
+        })
+    }
+}
+
+const queryAll = (urlArray) => {
+
+    const queryGitHubOnce = (url) => {
+        logger(`Querying for ${url}`);
+        return new Promise((resolve, reject) => {
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`),
+                    'Accept': "application/vnd.github.cloak-preview"
+                }
+            })
+            .then(apiResponse => {
+                apiResponse.json().then(json => {
+                    //Add to DB
+                    
+                    if(json.items){
+                        logger(`Length of ${url} response = ${json.items.length}`);
+                        let commitArray = [...json.items];
+        
+                        addCommits(commitArray, function (err, response) {
+                            if (err) return console.log(err);
+                            // console.log(`Commits added to DB for ${url}`);
+                            // logger(`Commits added to DB for ${url}`);
+                        });
+                    } else {
+                        logger(`Doesn't seem to be any commits for ${url}`);
+                        fs.appendFile("./log/jsonerror.txt", JSON.stringify(json) + "\n", (err) => {
+                            if(err) logger(err);
+                        });
+                    }
+                    
+                    i++
+    
+                    if (i >= urlArray.length) {
+                        logger(`Resolving promise for i: ${i} and url: ${url}`);
+                        resolve();
+                        return;
+                    }
+
+                    const rateLimitRemain = apiResponse.headers.get('x-ratelimit-remaining');
+                    logger(`Rate limit at ${url} is : ${rateLimitRemain}`);
+                    if(rateLimitRemain > 0){
+                        logger(`Calling next fn recursively instantly i: ${i} Rate limit : ${rateLimitRemain} next url: ${urlArray[i]}`);
+                        return queryGitHubOnce(urlArray[i]);
+                    } else {
+                        const rateLimitReset = +apiResponse.headers.get('x-ratelimit-reset') * 1000;
+                        const nowTime = new Date().getTime();
+                        const timeToWait = rateLimitReset - nowTime + 1000 * 40;
+                        console.log(`Waiting for ${timeToWait}ms`);
+                        logger(`Waiting for ${timeToWait}ms to call query for i: ${i} url: ${urlArray[i]}`);
+                        return delay(timeToWait)
+                        .then(next => {
+                            logger(`return from then block after setTimeout`);
+                            return queryGitHubOnce(urlArray[i]);
+                        });
+                    }
+                })
+                .then(done => {
+                    logger(`Resolving promise in then block for ${url}`);
+                    resolve();
+                });
+            });
+        })
+    }
+
+    let i = 0;
+
+    return queryGitHubOnce(urlArray[i]);
+
+}
 
 const gitUsers = [
     {
@@ -284,7 +380,7 @@ const queryGitHub = () => {
     const firstResults = gitUsers.map((user) => {
 
         const url = `https://api.github.com/search/commits?q=author:${user.git_user}&sort=author-date&order=desc`;
-        const API_KEY = process.env.API_KEY;
+        
 
         console.log(`Fetching ${user.git_user}`)
         return new Promise((resolve, reject) => {
@@ -322,20 +418,48 @@ const queryGitHub = () => {
                 return apiResponse.json();
             })
             .then(jsonData => {
-                console.log(`Fetch of ${user.git_user} complete.`);
+
+                if(jsonData.items){
+
+                    let commitArray = [...jsonData.items];
+    
+                    addCommits(commitArray, function (err, response) {
+                        if (err){
+                            reject();
+                        } else {
+                            // console.log(`Commits added to DB for ${url}`);
+                        }
+                    });
+                }
+
+
+                // console.log(`Fetch of ${user.git_user} complete.`);
                 const jsonString = JSON.stringify(jsonData);
-                fs.appendFile("./log/responsejson.txt", jsonString + "\n", (err) => {
+                fs.writeFile("./log/responsejson.txt", jsonString + "\n", (err) => {
                     if(err) reject(err);
                 });
-            })
+            });
         })
 
     });
 
     Promise.all(firstResults).then(data => {
+        data = data.flat().filter((a) => a);
         console.log("All results fetched");
         console.log(`Url list:`);
-        console.log(data.flat());
+        console.log(data);
+        //Wait 90 secs
+        console.log("Waiting 30 secs");
+        logger("Waiting 30 secs");
+        return delay(1000*30).then(nothing => {
+            return queryAll(data);
+        });
+    })
+    .then(next => {
+        console.log("Finished fetching list of urls");
+        delay(1000*90).then(nothing => {
+            queryGitHub();
+        });
     })
     .catch(error => {
         console.log("Error: ", error);
