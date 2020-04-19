@@ -231,17 +231,6 @@ app.get('/api', (req, res) => {
         const lastCommit = Commit.find({"author.login": userName}).sort({"commit.committer.date": -1}).limit(5);
         const commitsLastWeek = Commit.find({"author.login": userName, "commit.author.date": {$gt: weekAgo.toISOString()}}).count();
 
-        
-        
-      /*   , {skip:0, limit: 2, sort: {"commit.commiter.date": -1}},(err, results) => {
-            if(err) console.log(err);
-            // console.log(results);
-            return results;
-
-            2020-04-01T22:27:19+10:30
-            2020-04-01T11:57:19.144Z
-
-        }) */
 
         return Promise.all([count, lastCommit, commitsLastWeek]).then((queryResults) => {
             responseObj = {
