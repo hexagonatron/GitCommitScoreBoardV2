@@ -64,6 +64,9 @@ let commitSchema = mongoose.Schema({
     },
     score: {
         type: Number
+    },
+    commit_date: {
+        type: Date
     }
 });
 
@@ -204,7 +207,8 @@ const addCommits = (commitArray, callback) => {
                 author: el.author,
                 committer: el.committer,
                 repository: el.repository,
-                score: el.score
+                score: el.score,
+                date: 
             }
         };
 
