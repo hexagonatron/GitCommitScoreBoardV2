@@ -5,6 +5,7 @@ const btoa = require('btoa');
 const mongoose = require('mongoose');
 const fs = require('fs');
 require('dotenv').config();
+const moment = require("moment");
 
 //Intialise Express
 const app = express();
@@ -64,6 +65,9 @@ let commitSchema = mongoose.Schema({
     },
     score: {
         type: Number
+    },
+    commit_date: {
+        type: Date
     }
 });
 
@@ -180,6 +184,7 @@ const gitUsers = [
     }
 ];
 
+
 //Delay Fn
 
 const delay = (time) => {
@@ -192,6 +197,9 @@ const delay = (time) => {
 
 const addCommits = (commitArray, callback) => {
     commitArray.forEach(el => {
+        
+        const commitDate = moment(el.commit.author.date).toISOString();
+        console.log(`Original date: ${el.commit.author.date} Converted date: ${commitDate}`);
 
         let update = {
             $setOnInsert: {
@@ -205,7 +213,11 @@ const addCommits = (commitArray, callback) => {
                 committer: el.committer,
                 repository: el.repository,
                 score: el.score
+            },
+            $set: {
+                commit_date: new Date(commitDate)
             }
+
         };
 
         let query = { node_id: el.node_id };
@@ -376,6 +388,7 @@ const queryGitHub = () => {
 
                         addCommits(commitArray, function (err, response) {
                             if (err) {
+                                console.log(err)
                                 reject();
                             } else {
                                 // console.log(`Commits added to DB for ${url}`);
