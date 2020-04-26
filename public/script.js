@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 //Select page elements
 const tableOutput = document.querySelector(".result-output");
 
