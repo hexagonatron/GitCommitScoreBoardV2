@@ -234,7 +234,8 @@ const getUserAvatar = (username) => {
                 {
                     method: "GET",
                     headers: {
-                        "Accept": "application/vnd.github.v3+json"
+                        "Accept": "application/vnd.github.v3+json",
+                        'Authorization': 'Basic ' + btoa(`gitcommitscoreboard:${API_KEY}`)
                     }
                 })
                 .then(res => {
