@@ -199,7 +199,6 @@ const addCommits = (commitArray, callback) => {
     commitArray.forEach(el => {
         
         const commitDate = moment(el.commit.author.date).toISOString();
-        console.log(`Original date: ${el.commit.author.date} Converted date: ${commitDate}`);
 
         let update = {
             $setOnInsert: {
@@ -212,12 +211,9 @@ const addCommits = (commitArray, callback) => {
                 author: el.author,
                 committer: el.committer,
                 repository: el.repository,
-                score: el.score
-            },
-            $set: {
+                score: el.score,
                 commit_date: new Date(commitDate)
             }
-
         };
 
         let query = { node_id: el.node_id };
