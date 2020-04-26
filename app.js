@@ -228,6 +228,24 @@ const addCommits = (commitArray, callback) => {
     });
 }
 
+const getUserAvatar = (username) => {
+    return new Promise((res, rej) => {
+        fetch(`https://api.github.com/users/${username}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                })
+                .then(res => {
+                    return res.json()
+                })
+                .then(json => {
+                    res(json.avatar_url);
+                });
+    });
+}
+
 //If API endpoint hit
 app.get('/api', (req, res) => {
 
@@ -242,15 +260,17 @@ app.get('/api', (req, res) => {
         const count = Commit.countDocuments({ "author.login": userName });
         const lastCommit = Commit.find({"author.login": userName}).sort({"commit.committer.date": -1}).limit(5);
         const commitsLastWeek = Commit.find({"author.login": userName, "commit.author.date": {$gt: weekAgo.toISOString()}}).count();
+        const gitAvURL = getUserAvatar(user.git_user)
 
 
-        return Promise.all([count, lastCommit, commitsLastWeek]).then((queryResults) => {
+        return Promise.all([count, lastCommit, commitsLastWeek, gitAvURL]).then((queryResults) => {
             responseObj = {
                 "name": name,
                 "user_name": userName,
                 "commit_count_all_time": queryResults[0],
                 "commit_count_last_week": queryResults[2],
-                "commits": queryResults[1]
+                "commits": queryResults[1],
+                "git_av_url" : queryResults[3]
             }
             return responseObj;
         })

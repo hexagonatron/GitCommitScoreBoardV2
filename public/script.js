@@ -29,26 +29,6 @@ const processResults = (responseArray) => {
     displayResults(dataArray);
 }
 
-const getAvatar = (username) => {
-    return new Promise( (res, rej) => {
-        fetch(`https://api.github.com/users/${username}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/vnd.github.v3+json"
-                    }
-                })
-                .then(res => {
-                    return res.json()
-                })
-                .then(json => {
-                    res(json.avatar_url);
-                });
-    })
-}
-
-
-
 //Sort functions
 const commitDes = (a, b) => b.commit_count_all_time - a.commit_count_all_time;
 
@@ -70,7 +50,7 @@ const createRow = (person, position) => {
     htmlString = `
     <tr>
         <td scope="row">${position}</td>
-        <td><img class="git-avatar" src="${person.commit_count_all_time?person.commits[0].author.avatar_url:getAvatar(person.user_name)}"><a href="https://github.com/${person.user_name}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
+        <td><img class="git-avatar" src="${person.git_av_url}"><a href="https://github.com/${person.user_name}" target="_blank" rel="noopener noreferrer">${person.name}</a></td>
         <td>${person.commit_count_all_time}</td>
         <td>${person.commit_count_last_week}</td>
         <td>${person.commit_count_all_time? `<a href="${person.commits[0].repository.html_url}" target="_blank" rel="noopener noreferrer">${person.commits[0].repository.name}</a>`:"No commits =("}</td>
