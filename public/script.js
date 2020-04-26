@@ -30,19 +30,21 @@ const processResults = (responseArray) => {
 }
 
 const getAvatar = (username) => {
-    return fetch(`https://api.github.com/users/${username}`,
-            {
-                method: "GET",
-                headers: {
-                    "Accept": "application/vnd.github.v3+json"
-                }
-            })
-            .then(res => {
-                return res.json()
-            })
-            .then(json => {
-                return json.avatar_url
-            });
+    return new Promise( (res, rej) => {
+        fetch(`https://api.github.com/users/${username}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                })
+                .then(res => {
+                    return res.json()
+                })
+                .then(json => {
+                    res(json.avatar_url);
+                });
+    })
 }
 
 
