@@ -255,7 +255,7 @@ app.get('/api', (req, res) => {
         const name = user.display;
         const userName = user.git_user;
         const count = Commit.countDocuments({ "author.login": userName });
-        const lastCommit = Commit.find({"author.login": userName}).sort({"commit.committer.date": -1}).limit(5);
+        const lastCommit = Commit.find({"author.login": userName}).sort({"commit.committer.date": -1}).limit(1);
         const commitsLastWeek = Commit.find({"author.login": userName, "commit.author.date": {$gt: weekAgo.toISOString()}}).count();
         const gitAvURL = getUserAvatar(user.git_user)
 
